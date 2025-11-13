@@ -40,9 +40,11 @@
         force: yes
 
     - name: Install Node dependencies
-      npm:
-        path: "{{ app_dir }}"
-        production: no
+      shell: |
+        cd {{ app_dir }}
+        npm install --legacy-peer-deps
+      args:
+        creates: "{{ app_dir }}/node_modules"
 
     - name: Create .env file for production
       copy:
