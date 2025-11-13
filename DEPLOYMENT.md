@@ -46,10 +46,10 @@ terraform apply
 ```
 
 **After terraform apply succeeds, note the outputs:**
-- `app_public_ip` → Use this in Ansible inventory
-- `app_private_ip` → Use this for NEXTAUTH_URL and Nagios
-- `nagios_public_ip` → Use this for Nagios access
-- `nagios_private_ip` → Use this in app's NRPE config
+- `app_public_ip` → Use this in Ansible inventory 13.127.218.112
+- `app_private_ip` → Use this for NEXTAUTH_URL and Nagios 13.127.218.112
+- `nagios_public_ip` → Use this for Nagios access 13.127.218.112
+- `nagios_private_ip` → Use this in app's NRPE config 13.127.218.112
 
 ### 1.4 Example output:
 ```

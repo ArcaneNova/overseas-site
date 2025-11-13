@@ -1,0 +1,41 @@
+# BN Overseas Environment Variables for Ansible Deployment
+# Copy values from your local .env file
+# Usage: ansible-playbook playbook.yml -e @vars.yml
+
+# Database Configuration
+database_url: "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiMDFKVzY5WTU2OENZRlRCNUpUS0ZRNlg2UEMiLCJ0ZW5hbnRfaWQiOiJkZDdmMTA2ZGFlNDM1NmJlY2Y1NTgzYWVlMmI1MGJhZTdmMWJiOTZhOTEyN2UyMTBmNTk0NGVhMjNmM2ZhNzU0IiwiaW50ZXJuYWxfc2VjcmV0IjoiYmJkNGQwYzYtOWMxZS00NGE3LThhMGMtZWFhMWI1NjYzODExIn0.VDWsTY7HCVkivhBtoORea2g7zIKXX9_X40oMzlclYGs"
+
+# Authentication Configuration
+jwt_secret: "super-secret-jwt-key-for-bnoverseas-development-only-change-in-production"
+jwt_refresh_secret: "super-secret-refresh-jwt-key-for-bnoverseas-development-only-change-in-production"
+nextauth_secret: "development-nextauth-secret-key"
+NEXTAUTH_URL: "http://localhost:3000"
+
+# Email Configuration
+smtp_host: "smtp.gmail.com"
+smtp_port: "587"
+smtp_user: ""
+smtp_pass: ""
+from_email: "noreply@bnoverseas.com"
+
+# AWS Configuration
+aws_access_key_id: ""
+aws_secret_access_key: ""
+aws_region: "us-east-1"
+aws_s3_bucket: "bnoverseas-uploads"
+
+# Payment Gateways
+stripe_secret_key: ""
+stripe_publishable_key: ""
+razorpay_key_id: ""
+razorpay_key_secret: ""
+
+# External APIs
+zoom_api_key: ""
+zoom_api_secret: ""
+twilio_account_sid: ""
+twilio_auth_token: ""
+
+# App Configuration
+next_public_app_name: "BnOverseas"
+node_env: "production"
