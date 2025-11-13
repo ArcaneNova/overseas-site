@@ -49,6 +49,8 @@ terraform/tfplan
 ansible/inventory.ini
 .ansible/
 *.retry
+infra/ansible/env.secrets.yml
+infra/ansible/*.vault.yml
 
 # SSH Keys & Credentials
 .ssh/

@@ -1,0 +1,67 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "forced=true" >> $GITHUB_OUTPUT
+          else
+            git diff --name-only HEAD~1 | grep -E "^(app/|components/|lib/|prisma/|package)" > /dev/null && echo "changed=true" >> $GITHUB_OUTPUT || echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        if: steps.changes.outputs.changed == 'true' || steps.changes.outputs.forced == 'true'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up Ansible
+        if: steps.changes.outputs.changed == 'true' || steps.changes.outputs.forced == 'true'
+        run: |
+          pip install ansible boto3
+
+      - name: Deploy via Ansible
+        if: steps.changes.outputs.changed == 'true' || steps.changes.outputs.forced == 'true'
+        run: |
+          cd infrastructure/ansible
+          ansible-playbook deploy.yml -i inventory.ini
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'false'
+
+      - name: Verify deployment
+        if: steps.changes.outputs.changed == 'true' || steps.changes.outputs.forced == 'true'
+        run: |
+          # Get load balancer DNS from Terraform
+          cd infrastructure/terraform
+          terraform init
+          LB_DNS=$(terraform output -raw load_balancer_dns)
+          
+          # Wait for application to be healthy
+          for i in {1..30}; do
+            if curl -f "http://$LB_DNS" > /dev/null 2>&1; then
+              echo "✓ Application is healthy"
+              exit 0
+            fi
+            echo "Waiting for application... ($i/30)"
+            sleep 10
+          done
+          
+          echo "✗ Application health check failed"
+          exit 1

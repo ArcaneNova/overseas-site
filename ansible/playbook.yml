@@ -1,369 +1,173 @@
----
-- name: Setup Next.js Application on AWS EC2
-  hosts: nextjs
+- hosts: app
   become: yes
   vars:
-    app_name: bnoverseas-app
-    app_port: 3000
-    app_user: ubuntu
-    app_group: ubuntu
-    node_version: "20"
-    repo_url: "https://github.com/yourusername/your-nextjs-app.git"
-    app_directory: "/var/www/{{ app_name }}"
-    domain_name: "your-domain.com"  # Update this with your domain
-
+    github_repo: "https://github.com/YOUR_USERNAME/bnoverseas.git"
+    app_dir: /var/www/nextjs
+    
   tasks:
-    # Step 1: System Updates
-    - name: Update package manager cache
+    - name: Update system packages
       apt:
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Upgrade all packages
-      apt:
-        upgrade: dist
-
-    - name: Install basic dependencies
+    - name: Install required packages
       apt:
         name:
-          - curl
-          - wget
           - git
+          - curl
           - build-essential
-          - ufw
-          - htop
-          - nano
-          - net-tools
-          - python3-pip
+          - nginx
+          - postgresql-client
         state: present
 
-    # Step 2: Install Node.js
-    - name: Add Node.js repository
-      shell: curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
+    - name: Install Node.js 18.x
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        apt-get install -y nodejs
       args:
-        creates: /etc/apt/sources.list.d/nodesource.list
+        creates: /usr/bin/node
 
-    - name: Install Node.js and npm
-      apt:
-        name:
-          - nodejs
-        state: present
-
-    - name: Verify Node.js installation
-      shell: node -v && npm -v
-      register: node_version_check
-      changed_when: false
-
-    - name: Display Node.js and npm version
-      debug:
-        msg: "{{ node_version_check.stdout }}"
-
-    # Step 3: Install Nginx
-    - name: Install Nginx
-      apt:
-        name: nginx
-        state: present
-
-    - name: Start Nginx service
-      systemd:
-        name: nginx
-        enabled: yes
-        state: started
-
-    # Step 4: Configure Firewall
-    - name: Enable UFW
-      ufw:
-        state: enabled
-        policy: deny
-        direction: incoming
-
-    - name: Allow SSH through firewall
-      ufw:
-        rule: allow
-        port: "22"
-        proto: tcp
-
-    - name: Allow HTTP through firewall
-      ufw:
-        rule: allow
-        port: "80"
-        proto: tcp
-
-    - name: Allow HTTPS through firewall
-      ufw:
-        rule: allow
-        port: "443"
-        proto: tcp
-
-    # Step 5: Clone Repository
-    - name: Create app directory
-      file:
-        path: "{{ app_directory }}"
-        state: directory
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0755'
-
-    - name: Clone Next.js repository
-      git:
-        repo: "{{ repo_url }}"
-        dest: "{{ app_directory }}"
-        version: main
-      become_user: "{{ app_user }}"
-      register: git_clone
-      failed_when: 
-        - git_clone.failed
-        - "'fatal' in git_clone.msg"
-
-    # Step 6: Install Dependencies and Build
-    - name: Install npm dependencies
-      shell: |
-        cd {{ app_directory }}
-        npm install
-      become_user: "{{ app_user }}"
-      environment:
-        NODE_ENV: production
-
-    - name: Generate Prisma client
-      shell: |
-        cd {{ app_directory }}
-        npm run db:generate
-      become_user: "{{ app_user }}"
-      ignore_errors: yes
-
-    - name: Build Next.js application
-      shell: |
-        cd {{ app_directory }}
-        npm run build
-      become_user: "{{ app_user }}"
-      environment:
-        NODE_ENV: production
-
-    # Step 7: Install and Configure PM2
     - name: Install PM2 globally
       npm:
         name: pm2
         global: yes
 
-    - name: Create PM2 ecosystem config file
+    - name: Clone Next.js repository
+      git:
+        repo: "{{ github_repo }}"
+        dest: "{{ app_dir }}"
+        version: main
+        force: yes
+
+    - name: Install Node dependencies
+      npm:
+        path: "{{ app_dir }}"
+        production: no
+
+    - name: Create .env file for production
       copy:
-        dest: "{{ app_directory }}/ecosystem.config.js"
+        dest: "{{ app_dir }}/.env.local"
         content: |
-          module.exports = {
-            apps: [
-              {
-                name: "{{ app_name }}",
-                script: "npm",
-                args: "start",
-                cwd: "{{ app_directory }}",
-                instances: "max",
-                exec_mode: "cluster",
-                env: {
-                  NODE_ENV: "production",
-                  PORT: {{ app_port }}
-                },
-                error_file: "logs/error.log",
-                out_file: "logs/out.log",
-                log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-                merge_logs: true,
-                autorestart: true,
-                watch: false,
-                max_memory_restart: "500M"
-              }
-            ]
-          }
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0644'
+          # Database
+          DATABASE_URL="{{ database_url }}"
 
-    - name: Create logs directory
-      file:
-        path: "{{ app_directory }}/logs"
-        state: directory
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0755'
+          # Authentication
+          JWT_SECRET="{{ jwt_secret }}"
+          JWT_REFRESH_SECRET="{{ jwt_refresh_secret }}"
+          NEXTAUTH_SECRET="{{ nextauth_secret }}"
+          NEXTAUTH_URL="http://{{ ansible_host }}"
 
-    - name: Start application with PM2
+          # Email Configuration
+          SMTP_HOST="{{ smtp_host }}"
+          SMTP_PORT="{{ smtp_port }}"
+          SMTP_USER="{{ smtp_user }}"
+          SMTP_PASS="{{ smtp_pass }}"
+          FROM_EMAIL="{{ from_email }}"
+
+          # AWS Configuration
+          AWS_ACCESS_KEY_ID="{{ aws_access_key_id }}"
+          AWS_SECRET_ACCESS_KEY="{{ aws_secret_access_key }}"
+          AWS_REGION="{{ aws_region }}"
+          AWS_S3_BUCKET="{{ aws_s3_bucket }}"
+
+          # Payment Gateways
+          STRIPE_SECRET_KEY="{{ stripe_secret_key }}"
+          STRIPE_PUBLISHABLE_KEY="{{ stripe_publishable_key }}"
+          RAZORPAY_KEY_ID="{{ razorpay_key_id }}"
+          RAZORPAY_KEY_SECRET="{{ razorpay_key_secret }}"
+
+          # External APIs
+          ZOOM_API_KEY="{{ zoom_api_key }}"
+          ZOOM_API_SECRET="{{ zoom_api_secret }}"
+          TWILIO_ACCOUNT_SID="{{ twilio_account_sid }}"
+          TWILIO_AUTH_TOKEN="{{ twilio_auth_token }}"
+
+          # App Configuration
+          NEXT_PUBLIC_APP_URL="http://{{ ansible_host }}"
+          NEXT_PUBLIC_APP_NAME="BnOverseas"
+          NODE_ENV="production"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+    - name: Build Next.js application
       shell: |
-        cd {{ app_directory }}
-        pm2 start ecosystem.config.js
-        pm2 startup
-        pm2 save
-      become_user: "{{ app_user }}"
+        cd {{ app_dir }}
+        npm run build
       environment:
         NODE_ENV: production
-      register: pm2_start
-      changed_when: "'started' in pm2_start.stdout"
 
-    # Step 8: Configure Nginx as Reverse Proxy
-    - name: Create Nginx configuration
+    - name: Start Next.js with PM2
+      shell: |
+        cd {{ app_dir }}
+        pm2 start npm --name "nextjs-app" -- start
+        pm2 startup
+        pm2 save
+      environment:
+        NODE_ENV: production
+      become_user: ubuntu
+
+    - name: Configure Nginx reverse proxy
       copy:
         dest: /etc/nginx/sites-available/nextjs
         content: |
-          upstream nextjs {
-            server 127.0.0.1:{{ app_port }};
-          }
-
           server {
-              listen 80;
-              server_name {{ domain_name }} _;
-              client_max_body_size 20M;
+            listen 80;
+            server_name _;
 
-              location / {
-                  proxy_pass http://nextjs;
-                  proxy_http_version 1.1;
-                  proxy_set_header Upgrade $http_upgrade;
-                  proxy_set_header Connection 'upgrade';
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto $scheme;
-                  proxy_cache_bypass $http_upgrade;
-                  proxy_read_timeout 30s;
-              }
-
-              location /_next/static/ {
-                  proxy_pass http://nextjs;
-                  proxy_cache_valid 60m;
-                  proxy_cache_bypass $http_upgrade;
-                  expires 30d;
-                  add_header Cache-Control "public, immutable";
-              }
-
-              location /api/ {
-                  proxy_pass http://nextjs;
-                  proxy_http_version 1.1;
-                  proxy_set_header Upgrade $http_upgrade;
-                  proxy_set_header Connection 'upgrade';
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto $scheme;
-                  proxy_read_timeout 60s;
-              }
+            location / {
+              proxy_pass http://127.0.0.1:3000;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_cache_bypass $http_upgrade;
+            }
           }
-        owner: root
-        group: root
-        mode: '0644'
 
     - name: Enable Nginx site
-      shell: |
-        ln -sf /etc/nginx/sites-available/nextjs /etc/nginx/sites-enabled/nextjs
-        rm -f /etc/nginx/sites-enabled/default
-      register: nginx_enable
-      changed_when: "'ln:' in nginx_enable.stderr or nginx_enable.rc == 0"
+      file:
+        src: /etc/nginx/sites-available/nextjs
+        dest: /etc/nginx/sites-enabled/nextjs
+        state: link
+      notify: restart nginx
+
+    - name: Disable default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
 
     - name: Test Nginx configuration
       shell: nginx -t
       register: nginx_test
-      changed_when: false
+      failed_when: nginx_test.rc != 0
 
-    - name: Reload Nginx
-      systemd:
-        name: nginx
-        state: reloaded
-
-    # Step 9: SSL Certificate (Let's Encrypt)
-    - name: Install Certbot and Nginx plugin
+    - name: Install NRPE for Nagios monitoring
       apt:
         name:
-          - certbot
-          - python3-certbot-nginx
+          - nagios-nrpe-server
+          - nagios-plugins-basic
         state: present
 
-    - name: Create SSL certificate (if domain is configured)
-      shell: |
-        certbot --nginx -d {{ domain_name }} --non-interactive --agree-tos -m admin@{{ domain_name }} --redirect
-      when: domain_name != "your-domain.com"
-      ignore_errors: yes
+    - name: Configure NRPE
+      lineinfile:
+        path: /etc/nagios/nrpe.cfg
+        regexp: '^allowed_hosts='
+        line: "allowed_hosts=127.0.0.1,{{ hostvars['NAGIOS_PUBLIC_IP']['private_ip'] | default('10.0.1.0/24') }}"
+      notify: restart nrpe
 
-    # Step 10: Configure log rotation
-    - name: Create logrotate configuration
-      copy:
-        dest: /etc/logrotate.d/nextjs-app
-        content: |
-          {{ app_directory }}/logs/*.log {
-              daily
-              rotate 7
-              compress
-              delaycompress
-              notifempty
-              create 0640 {{ app_user }} {{ app_group }}
-              sharedscripts
-              postrotate
-                  systemctl reload nginx
-              endscript
-          }
-        owner: root
-        group: root
-        mode: '0644'
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
 
-    # Step 11: Create deployment helper scripts
-    - name: Create deployment scripts directory
-      file:
-        path: "{{ app_directory }}/scripts"
-        state: directory
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0755'
-
-    - name: Create update script
-      copy:
-        dest: "{{ app_directory }}/scripts/update.sh"
-        content: |
-          #!/bin/bash
-          set -e
-          echo "Pulling latest changes..."
-          cd {{ app_directory }}
-          git pull origin main
-          echo "Installing dependencies..."
-          npm install
-          echo "Generating Prisma..."
-          npm run db:generate || true
-          echo "Building application..."
-          npm run build
-          echo "Restarting PM2..."
-          pm2 restart all
-          pm2 save
-          echo "Deployment complete!"
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0755'
-
-    - name: Create status check script
-      copy:
-        dest: "{{ app_directory }}/scripts/status.sh"
-        content: |
-          #!/bin/bash
-          echo "=== PM2 Status ==="
-          pm2 status
-          echo ""
-          echo "=== Application Logs ==="
-          pm2 logs --lines 50 --nostream
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        mode: '0755'
-
-    # Step 12: Summary
-    - name: Display deployment summary
-      debug:
-        msg:
-          - "========================================="
-          - "✅ Next.js Application Deployed Successfully!"
-          - "========================================="
-          - "Application Name: {{ app_name }}"
-          - "Application Directory: {{ app_directory }}"
-          - "Application Port: {{ app_port }}"
-          - "Domain: {{ domain_name }}"
-          - ""
-          - "📋 Useful Commands:"
-          - "  - Check status: pm2 status"
-          - "  - View logs: pm2 logs"
-          - "  - Restart app: pm2 restart all"
-          - "  - Redeploy: cd {{ app_directory }} && ./scripts/update.sh"
-          - ""
-          - "🌍 Access your application:"
-          - "  - HTTP: http://{{ domain_name }}"
-          - "  - HTTPS: https://{{ domain_name }}"
-          - "========================================="
+    - name: restart nrpe
+      service:
+        name: nagios-nrpe-server
+        state: restarted
+        enabled: yes
