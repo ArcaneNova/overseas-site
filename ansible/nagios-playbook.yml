@@ -161,7 +161,7 @@
         group: nagios
         mode: '0755'
 
-    - name: Create Nagios host config for app
+    - name: Create Nagios host config for app (placeholder)
       copy:
         dest: /usr/local/nagios/etc/servers/app.cfg
         content: |
@@ -169,7 +169,7 @@
             use                     linux-server
             host_name               nextjs-app
             alias                   NextJS App Server
-            address                 APP_PRIVATE_IP
+            address                 10.0.1.0
             check_command           check-host-alive
           }
 
@@ -203,11 +203,41 @@
         owner: nagios
         group: nagios
         mode: '0644'
+      
+    - name: Important - Update app IP in Nagios config
+      debug:
+        msg: "⚠️  IMPORTANT: SSH into Nagios and update /usr/local/nagios/etc/servers/app.cfg with the app's PRIVATE IP from Terraform, then restart nagios"
 
     - name: Verify Nagios config
       shell: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
       register: nagios_verify
       failed_when: nagios_verify.rc > 1
+
+    - name: Install NRPE on Nagios server
+      apt:
+        name:
+          - nagios-nrpe-server
+          - nagios-plugins-standard
+        state: present
+
+    - name: Configure NRPE on Nagios server
+      lineinfile:
+        path: /etc/nagios/nrpe.cfg
+        regexp: '^allowed_hosts='
+        line: "allowed_hosts=127.0.0.1"
+
+    - name: Enable and start NRPE
+      service:
+        name: nagios-nrpe-server
+        state: restarted
+        enabled: yes
+
+    - name: Enable Nagios modules in config
+      lineinfile:
+        path: /usr/local/nagios/etc/nagios.cfg
+        regexp: '^cfg_dir=/usr/local/nagios/etc/servers'
+        line: "cfg_dir=/usr/local/nagios/etc/servers"
+        state: present
 
     - name: Start Nagios service
       shell: |
