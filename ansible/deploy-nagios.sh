@@ -11,13 +11,13 @@ cd "$(dirname "$0")"
 # Add SSH host keys
 echo ""
 echo "📍 Adding SSH host keys..."
-ssh-keyscan -H 13.48.24.241 >> ~/.ssh/known_hosts 2>/dev/null || true
+ssh-keyscan -H 13.234.114.114 >> ~/.ssh/known_hosts 2>/dev/null || true
 echo "✅ Done"
 
 # Test connectivity
 echo ""
 echo "📍 Testing connectivity to Nagios server..."
-ansible 13.48.24.241 -i inventory.ini -m ping
+ansible 13.234.114.114 -i inventory.ini -m ping
 
 # Deploy
 echo ""
@@ -30,10 +30,10 @@ echo "✅ Nagios Server Deployment Complete!"
 echo "======================================"
 echo ""
 echo "Check Nagios service:"
-echo "ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241 sudo systemctl status nagios"
+echo "ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 sudo systemctl status nagios"
 echo ""
 echo "Access Nagios:"
-echo "http://13.48.24.241"
+echo "http://13.234.114.114"
 echo "Username: nagios"
 echo "Password: nagios123"
 echo ""
