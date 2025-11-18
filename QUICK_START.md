@@ -11,8 +11,8 @@ Run these commands in WSL Ubuntu:
 ```bash
 cd ~/overseas-site/ansible
 
-# FIX SSH KEY MISMATCH FIRST (run this once)
-bash fix-key-mismatch.sh
+# FIX SSH KEY MISMATCH FIRST (run this once, takes ~3 minutes)
+bash fix-key-complete.sh
 
 # Then deploy app server (takes 5-10 minutes)
 bash deploy-app.sh
@@ -25,6 +25,14 @@ Or do everything at once after the fix:
 ```bash
 bash deploy-all.sh
 ```
+
+**What `fix-key-complete.sh` does:**
+- ✅ Creates brand new SSH key pair in AWS
+- ✅ Terminates all old instances  
+- ✅ Cleans Terraform state
+- ✅ Recreates infrastructure with correct keys
+- ✅ Updates inventory with new IPs
+- ✅ Tests connectivity automatically
 
 ## Access Your Services
 
@@ -81,20 +89,22 @@ ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 sudo systemctl status nginx
 ## Troubleshooting
 
 ### SSH Permission Denied (publickey)
-If you see "Permission denied (publickey)" error:
+If you see "Permission denied (publickey)" error, run this comprehensive fix:
 
 ```bash
-# This fixes the SSH key mismatch with AWS
 cd ~/overseas-site/ansible
-bash fix-key-mismatch.sh
+bash fix-key-complete.sh
 ```
 
 This script will:
-1. Delete the old deploy-key from AWS
-2. Re-import your local public key
-3. Destroy and recreate the infrastructure with the correct key
-4. Update the inventory with new IPs
-5. Test connectivity
+1. Create a completely new SSH key pair
+2. Register it with AWS
+3. Terminate all old instances
+4. Recreate infrastructure with the correct key
+5. Update your inventory with new IPs
+6. Test connectivity to verify everything works
+
+**The script handles everything automatically** - just run it and wait for "✅ SSH Key Fix Complete!"
 
 ### If Ansible says "inventory not found"
 Make sure you're in the ansible directory:
