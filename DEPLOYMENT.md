@@ -45,100 +45,97 @@ terraform plan
 terraform apply
 ```
 
-**After terraform apply succeeds, note the outputs:**
-- `app_public_ip` → Use this in Ansible inventory 13.127.218.112
-- `app_private_ip` → Use this for NEXTAUTH_URL and Nagios 13.127.218.112
-- `nagios_public_ip` → Use this for Nagios access 13.127.218.112
-- `nagios_private_ip` → Use this in app's NRPE config 13.127.218.112
+**Terraform Output (Already Applied):**
+- `app_public_ip` = 13.127.218.112
+- `app_private_ip` = 10.0.1.14
+- `nagios_public_ip` = 13.233.112.94
+- `nagios_private_ip` = 10.0.1.37
 
-### 1.4 Example output:
+### 1.4 Infrastructure Ready! ✅
 ```
 Outputs:
 
-app_private_ip = "10.0.1.XX"
-app_public_ip = "54.X.X.X"
-nagios_private_ip = "10.0.1.YY"
-nagios_public_ip = "54.X.X.Y"
+app_private_ip = "10.0.1.14"
+app_public_ip = "13.127.218.112"
+nagios_private_ip = "10.0.1.37"
+nagios_public_ip = "13.233.112.94"
 ```
+
+✅ **2 EC2 instances created successfully**
+✅ **VPC and networking configured**
+✅ **Security groups active**
+✅ **Ready for Ansible deployment**
 
 ---
 
 ## Step 2: Configure Ansible Inventory & Variables
 
-### 2.1 Update ansible/inventory.ini
-```bash
-cd ../ansible
-```
-
-Edit `inventory.ini` and replace:
-- `APP_PUBLIC_IP` with actual app public IP from Terraform
-- `APP_PRIVATE_IP` with actual app private IP from Terraform
-- `NAGIOS_PUBLIC_IP` with actual Nagios public IP from Terraform
-
-Example:
+### 2.1 Inventory Configuration ✅
+Inventory is already configured with your actual IPs:
 ```ini
 [app]
-54.1.2.3 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=54.1.2.3 private_ip=10.0.1.10
+app_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.127.218.112 private_ip=10.0.1.14
 
 [nagios]
-54.4.5.6 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=54.4.5.6
+nagios_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.233.112.94 private_ip=10.0.1.37
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
 ```
 
-### 2.2 Create ansible/vars.yml for environment variables
-```bash
-cat > vars.yml << 'EOF'
-# Copy all values from your local .env file
-database_url: "your_database_url_here"
-jwt_secret: "your_jwt_secret_here"
-jwt_refresh_secret: "your_jwt_refresh_secret_here"
-nextauth_secret: "your_nextauth_secret_here"
+No changes needed - ready to use!
 
-smtp_host: "smtp.gmail.com"
-smtp_port: "587"
-smtp_user: "your_email@gmail.com"
-smtp_pass: "your_app_password"
-from_email: "noreply@bnoverseas.com"
+### 2.2 Environment Variables ✅
+`ansible/vars.yml` is already configured with your environment variables.
+All variables from your `.env` file are ready.
 
-aws_access_key_id: "your_aws_key"
-aws_secret_access_key: "your_aws_secret"
-aws_region: "ap-south-1"
-aws_s3_bucket: "bnoverseas-uploads"
-
-stripe_secret_key: "your_stripe_secret"
-stripe_publishable_key: "your_stripe_public"
-razorpay_key_id: "your_razorpay_key"
-razorpay_key_secret: "your_razorpay_secret"
-
-zoom_api_key: "your_zoom_key"
-zoom_api_secret: "your_zoom_secret"
-twilio_account_sid: "your_twilio_sid"
-twilio_auth_token: "your_twilio_token"
-EOF
-```
-
-### 2.3 Update playbook.yml
-Replace `YOUR_USERNAME` in the github_repo with your actual GitHub username:
+The `playbook.yml` is already configured with:
 ```yaml
-github_repo: "https://github.com/YOUR_USERNAME/bnoverseas.git"
+github_repo: "https://github.com/ArcaneNova/overseas-site.git"
+app_dir: /var/www/nextjs
 ```
+
+Ready for deployment!
 
 ---
 
 ## Step 3: Deploy Application with Ansible
 
-### 3.1 Test connectivity
+### 3.1 Test connectivity (from WSL Ubuntu)
 ```bash
+# Make sure you're in the WSL Ubuntu terminal, not PowerShell
+cd ~/overseas-site/ansible
+
+# Step 1: Accept SSH host keys
+bash setup-ssh.sh
+
+# Step 2: Test Ansible connectivity
 ansible all -i inventory.ini -m ping
+```
+
+**If you see host key verification error**, see `SSH_HOST_KEY_FIX.md` for solutions.
+
+Expected output when successful:
+```
+13.127.218.112 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+13.233.112.94 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
 ```
 
 ### 3.2 Run playbook with environment variables
 ```bash
-ansible-playbook -i inventory.ini playbook.yml \
-  -e @vars.yml \
-  -e "ansible_host=$(terraform output -raw app_public_ip)"
+ansible-playbook -i inventory.ini playbook.yml -e @vars.yml
+```
+
+**If you see npm peer dependency error:**
+- The playbook has been updated to use `--legacy-peer-deps`
+- Simply run the playbook again - it will skip completed tasks and retry npm install
+- See `NPM_DEPENDENCY_FIX.md` for details
 ```
 
 ### 3.3 Wait for deployment to complete
@@ -153,7 +150,7 @@ This will:
 
 ### 3.4 Verify deployment
 ```bash
-curl http://APP_PUBLIC_IP
+curl http://13.127.218.112
 # Should see your Next.js app
 ```
 
@@ -172,9 +169,9 @@ This will:
 - Configure Apache
 - Setup host and service monitoring
 
-### 4.2 Access Nagios Web UI
+### 4.2 Access Nagios Web UI ✅
 ```
-URL: http://NAGIOS_PUBLIC_IP
+URL: http://13.233.112.94
 Username: nagios
 Password: nagios123
 ```
@@ -186,7 +183,7 @@ Password: nagios123
 ### 5.1 Update Nagios app config with correct IPs
 SSH into Nagios server:
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@NAGIOS_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
 ```
 
 Edit the app config:
@@ -194,7 +191,10 @@ Edit the app config:
 sudo nano /usr/local/nagios/etc/servers/app.cfg
 ```
 
-Replace `APP_PRIVATE_IP` with the actual private IP from Terraform.
+Update the address to the app server's private IP:
+```
+address                 10.0.1.14
+```
 
 ### 5.2 Verify and restart Nagios
 ```bash
@@ -214,29 +214,29 @@ terraform output
 
 ### SSH into App Server
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@APP_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
 ```
 
 ### Check PM2 Status
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@APP_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
 pm2 status
 ```
 
 ### View PM2 Logs
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@APP_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
 pm2 logs nextjs-app
 ```
 
 ### SSH into Nagios Server
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@NAGIOS_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
 ```
 
 ### Check Nagios Service
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@NAGIOS_PUBLIC_IP
+ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
 sudo systemctl status nagios
 ```
 
