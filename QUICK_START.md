@@ -11,14 +11,17 @@ Run these commands in WSL Ubuntu:
 ```bash
 cd ~/overseas-site/ansible
 
-# Deploy app server (takes 5-10 minutes)
+# FIX SSH KEY MISMATCH FIRST (run this once)
+bash fix-key-mismatch.sh
+
+# Then deploy app server (takes 5-10 minutes)
 bash deploy-app.sh
 
-# Deploy Nagios server (takes 3-5 minutes)
+# Then deploy Nagios server (takes 3-5 minutes)
 bash deploy-nagios.sh
 ```
 
-Or run everything at once:
+Or do everything at once after the fix:
 ```bash
 bash deploy-all.sh
 ```
@@ -76,6 +79,22 @@ ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 sudo systemctl status nginx
 ```
 
 ## Troubleshooting
+
+### SSH Permission Denied (publickey)
+If you see "Permission denied (publickey)" error:
+
+```bash
+# This fixes the SSH key mismatch with AWS
+cd ~/overseas-site/ansible
+bash fix-key-mismatch.sh
+```
+
+This script will:
+1. Delete the old deploy-key from AWS
+2. Re-import your local public key
+3. Destroy and recreate the infrastructure with the correct key
+4. Update the inventory with new IPs
+5. Test connectivity
 
 ### If Ansible says "inventory not found"
 Make sure you're in the ansible directory:
