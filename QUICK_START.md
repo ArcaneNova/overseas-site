@@ -1,8 +1,8 @@
 # Quick Deployment Guide
 
 ## Current Infrastructure
-- **App Server**: 13.235.135.216 (private: 10.0.1.245)
-- **Nagios Server**: 13.234.114.114 (private: 10.0.1.107)
+- **App Server**: 13.62.222.157 (private: 10.0.1.117)
+- **Nagios Server**: 13.48.24.241 (private: 10.0.1.212)
 
 ## To Deploy Everything
 
@@ -37,11 +37,11 @@ bash deploy-all.sh
 ## Access Your Services
 
 ### Next.js App
-- **URL**: http://13.235.135.216
+- **URL**: http://13.62.222.157
 - **Repository**: https://github.com/ArcaneNova/overseas-site
 
 ### Nagios Monitoring
-- **URL**: http://13.234.114.114
+- **URL**: http://13.48.24.241
 - **Username**: nagios
 - **Password**: nagios123
 
@@ -68,22 +68,22 @@ ansible-playbook -i inventory.ini nagios-playbook.yml
 ### SSH into servers
 ```bash
 # App server
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157
 
 # Nagios server
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241
 ```
 
 ### Check service status
 ```bash
 # Check PM2 app status
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 status
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 pm2 status
 
 # Check Nagios status
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 sudo systemctl status nagios
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241 sudo systemctl status nagios
 
 # Check Nginx status
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 sudo systemctl status nginx
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 sudo systemctl status nginx
 ```
 
 ## Troubleshooting
@@ -126,7 +126,7 @@ chmod 644 ~/.ssh/deploy-key.pub
 **App server logs:**
 ```bash
 # SSH into app server
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157
 
 # View PM2 application logs
 pm2 logs nextjs-app
@@ -147,7 +147,7 @@ sudo systemctl status nginx
 **Nagios server logs:**
 ```bash
 # SSH into Nagios server
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241
 
 # View Nagios logs
 sudo tail -100 /var/log/nagios/nagios.log
@@ -165,7 +165,7 @@ sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 ### App not accessible at http://IP
 ```bash
 # SSH into app server
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157
 
 # Check if PM2 is running
 pm2 status
@@ -190,7 +190,7 @@ sudo tail -50 /var/log/nginx/error.log
 ### Nagios not accessible at http://IP
 ```bash
 # SSH into Nagios server
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241
 
 # Check Apache status
 sudo systemctl status apache2
@@ -216,7 +216,7 @@ sudo tail -50 /var/log/apache2/error.log
 If the app shows database errors:
 ```bash
 # SSH into app server
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157
 
 # Check .env file was created
 cat ~/.nextjs-app/.env.local | head -20
@@ -231,15 +231,15 @@ echo $DATABASE_URL
 ### Nagios not monitoring app server
 ```bash
 # SSH into Nagios server
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241
 
 # Check NRPE status on app server via Nagios
-/usr/local/nagios/libexec/check_nrpe -H 10.0.1.245 -c check_load
+/usr/local/nagios/libexec/check_nrpe -H 10.0.1.117 -c check_load
 
 # Check Nagios config for app
 sudo cat /usr/local/nagios/etc/servers/app.cfg
 
-# The address should be the private IP: 10.0.1.245
+# The address should be the private IP: 10.0.1.117
 # Restart if config changed
 sudo systemctl restart nagios
 ```

@@ -57,20 +57,16 @@ bnoverseas-app/
 ✅ Removed backup files
 ✅ Kept only essential deployment automation
 
-## Infrastructure Details
-
-### Servers
+## Current Infrastructure
 - **App Server**: EC2 t3.medium (Ubuntu 22.04)
-  - Node.js + npm
-  - PM2 (process manager)
-  - Nginx (reverse proxy on port 80)
-  - NRPE (monitoring agent on port 5666)
+  - Public IP: 13.62.222.157
+  - Private IP: 10.0.1.117
+  - URL: http://13.62.222.157
   
 - **Nagios Server**: EC2 t3.small (Ubuntu 22.04)
-  - Nagios Core
-  - Apache web server
-  - Nagios plugins
-  - NRPE server
+  - Public IP: 13.48.24.241
+  - Private IP: 10.0.1.212
+  - URL: http://13.48.24.241 (nagios/nagios123)
 
 ### Networking
 - **VPC**: 10.0.0.0/16
@@ -90,19 +86,19 @@ bnoverseas-app/
 
 ```bash
 # SSH into app server
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157
 
 # SSH into Nagios
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241
 
 # Check app status
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 status
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 pm2 status
 
 # View app logs
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 logs nextjs-app
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 pm2 logs nextjs-app
 
 # Check Nagios status
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 sudo systemctl status nagios
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241 sudo systemctl status nagios
 
 # Destroy all AWS resources
 cd terraform && terraform destroy -auto-approve
