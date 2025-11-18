@@ -13,8 +13,8 @@ cd "$SCRIPT_DIR"
 # 1. Add SSH host keys
 echo ""
 echo "1️⃣  Adding SSH host keys..."
-ssh-keyscan -H 13.235.135.216 >> ~/.ssh/known_hosts 2>/dev/null || true
-ssh-keyscan -H 13.234.114.114 >> ~/.ssh/known_hosts 2>/dev/null || true
+ssh-keyscan -H 13.62.222.157 >> ~/.ssh/known_hosts 2>/dev/null || true
+ssh-keyscan -H 13.48.24.241 >> ~/.ssh/known_hosts 2>/dev/null || true
 echo "✅ SSH host keys added"
 
 # 2. Test connectivity
@@ -39,11 +39,11 @@ echo ""
 echo "5️⃣  Verifying deployment..."
 echo ""
 echo "App Server Status:"
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 "pm2 status"
+ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 "pm2 status"
 
 echo ""
 echo "Nagios Service Status:"
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 "sudo systemctl status nagios --no-pager"
+ssh -i ~/.ssh/deploy-key ubuntu@13.48.24.241 "sudo systemctl status nagios --no-pager"
 
 echo ""
 echo "======================================"
@@ -51,6 +51,6 @@ echo "✅ Deployment Complete!"
 echo "======================================"
 echo ""
 echo "📱 Access Points:"
-echo "  - App:    http://13.235.135.216"
-echo "  - Nagios: http://13.234.114.114 (username: nagios, password: nagios123)"
+echo "  - App:    http://13.62.222.157"
+echo "  - Nagios: http://13.48.24.241 (username: nagios, password: nagios123)"
 echo ""
