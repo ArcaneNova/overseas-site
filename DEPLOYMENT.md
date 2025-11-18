@@ -99,10 +99,10 @@ terraform output
 
 **Expected Output:**
 ```
-app_public_ip = "13.235.135.216"
-app_private_ip = "10.0.1.245"
-nagios_public_ip = "13.234.114.114"
-nagios_private_ip = "10.0.1.107"
+app_public_ip = "13.61.181.123"
+app_private_ip = "10.0.1.167"
+nagios_public_ip = "16.16.215.8"
+nagios_private_ip = "10.0.1.225"
 ```
 
 ### 1.4 Troubleshooting Terraform
@@ -149,10 +149,10 @@ nagios_private_ip = "10.0.1.107"
 **ansible/inventory.ini:**
 ```ini
 [app]
-13.235.135.216 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.235.135.216 private_ip=10.0.1.245
+13.61.181.123 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.61.181.123 private_ip=10.0.1.167
 
 [nagios]
-13.234.114.114 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.234.114.114 private_ip=10.0.1.107
+16.16.215.8 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=16.16.215.8 private_ip=10.0.1.225
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
@@ -305,10 +305,10 @@ pm2 restart nextjs-app
 
 ```bash
 # From your local machine
-curl http://13.235.135.216
+curl http://13.61.181.123
 
 # Or open in browser
-http://13.235.135.216
+http://13.61.181.123
 ```
 
 Should show your Next.js application HTML.
@@ -317,7 +317,7 @@ Should show your Next.js application HTML.
 
 ```bash
 # From your local machine
-http://13.234.114.114
+http://16.16.215.8
 
 # Login with:
 # Username: nagios
@@ -330,7 +330,7 @@ Should show Nagios dashboard with your app server listed.
 
 **On App Server:**
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
+ssh -i ~/.ssh/deploy-key ubuntu@13.61.181.123
 
 # Check PM2
 pm2 status
@@ -346,7 +346,7 @@ sudo systemctl status nagios-nrpe-server
 
 **On Nagios Server:**
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
+ssh -i ~/.ssh/deploy-key ubuntu@16.16.215.8
 
 # Check Nagios
 sudo systemctl status nagios
@@ -388,8 +388,8 @@ bash fix-key-complete.sh
 bash deploy-all.sh
 
 # 6. Access
-# App: http://13.235.135.216
-# Nagios: http://13.234.114.114 (nagios/nagios123)
+# App: http://13.61.181.123
+# Nagios: http://16.16.215.8 (nagios/nagios123)
 ```
 
 ### Step-by-Step Manual Process
@@ -454,7 +454,7 @@ These are automatically loaded during Ansible deployment to `~/.nextjs-app/.env.
 
 ```bash
 # Monitor app
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 logs
+ssh -i ~/.ssh/deploy-key ubuntu@13.61.181.123 pm2 logs
 
 # Monitor Nagios
 ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 sudo tail -f /var/log/nagios/nagios.log
@@ -467,17 +467,17 @@ http://13.234.114.114
 
 **Restart application:**
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 restart nextjs-app
+ssh -i ~/.ssh/deploy-key ubuntu@13.61.181.123 pm2 restart nextjs-app
 ```
 
 **Restart monitoring:**
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114 sudo systemctl restart nagios
+ssh -i ~/.ssh/deploy-key ubuntu@16.16.215.8 sudo systemctl restart nagios
 ```
 
 **View Nginx error log:**
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 sudo tail -50 /var/log/nginx/error.log
+ssh -i ~/.ssh/deploy-key ubuntu@13.61.181.123 sudo tail -50 /var/log/nginx/error.log
 ```
 
 **Update configuration:**

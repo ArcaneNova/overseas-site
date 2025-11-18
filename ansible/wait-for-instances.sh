@@ -7,8 +7,8 @@ echo "Waiting for Instances to be Ready"
 echo "========================================"
 
 # Get IPs from inventory
-APP_IP="13.235.135.216"
-NAGIOS_IP="13.234.114.114"
+APP_IP="13.61.181.123"
+NAGIOS_IP="16.16.215.8"
 
 echo ""
 echo "📍 Waiting for SSH access on both instances..."
