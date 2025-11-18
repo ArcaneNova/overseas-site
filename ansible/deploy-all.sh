@@ -10,6 +10,13 @@ echo "======================================"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
+# 0. Wait for instances to be ready
+echo ""
+echo "0️⃣  Waiting for instances to be ready (30-60 seconds)..."
+bash wait-for-instances.sh || {
+  echo "⚠️  Instances not ready - trying anyway (they might boot soon)"
+}
+
 # 1. Add SSH host keys
 echo ""
 echo "1️⃣  Adding SSH host keys..."
