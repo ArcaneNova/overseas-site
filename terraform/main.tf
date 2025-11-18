@@ -25,10 +25,9 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Create SSH key pair
-resource "aws_key_pair" "deploy_key" {
-  key_name   = "deploy-key"
-  public_key = file(var.ssh_public_key_path)
+# Reference existing SSH key pair (don't create new one)
+data "aws_key_pair" "deploy_key" {
+  key_name = "deploy-key"
 }
 
 # VPC
