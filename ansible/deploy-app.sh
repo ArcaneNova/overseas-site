@@ -11,13 +11,13 @@ cd "$(dirname "$0")"
 # Add SSH host keys
 echo ""
 echo "📍 Adding SSH host keys..."
-ssh-keyscan -H 13.235.135.216 >> ~/.ssh/known_hosts 2>/dev/null || true
+ssh-keyscan -H 13.62.222.157 >> ~/.ssh/known_hosts 2>/dev/null || true
 echo "✅ Done"
 
 # Test connectivity
 echo ""
 echo "📍 Testing connectivity to app server..."
-ansible 13.235.135.216 -i inventory.ini -m ping
+ansible 13.62.222.157 -i inventory.ini -m ping
 
 # Deploy
 echo ""
@@ -30,8 +30,8 @@ echo "✅ App Server Deployment Complete!"
 echo "======================================"
 echo ""
 echo "Check PM2 status:"
-echo "ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216 pm2 status"
+echo "ssh -i ~/.ssh/deploy-key ubuntu@13.62.222.157 pm2 status"
 echo ""
 echo "View app:"
-echo "http://13.235.135.216"
+echo "http://13.62.222.157"
 echo ""
