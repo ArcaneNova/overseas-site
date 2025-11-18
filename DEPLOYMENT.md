@@ -46,19 +46,19 @@ terraform apply
 ```
 
 **Terraform Output (Already Applied):**
-- `app_public_ip` = 13.127.218.112
-- `app_private_ip` = 10.0.1.14
-- `nagios_public_ip` = 13.233.112.94
-- `nagios_private_ip` = 10.0.1.37
+- `app_public_ip` = 13.235.135.216
+- `app_private_ip` = 10.0.1.245
+- `nagios_public_ip` = 13.234.114.114
+- `nagios_private_ip` = 10.0.1.107
 
 ### 1.4 Infrastructure Ready! ✅
 ```
 Outputs:
 
-app_private_ip = "10.0.1.14"
-app_public_ip = "13.127.218.112"
-nagios_private_ip = "10.0.1.37"
-nagios_public_ip = "13.233.112.94"
+app_private_ip = "10.0.1.245"
+app_public_ip = "13.235.135.216"
+nagios_private_ip = "10.0.1.107"
+nagios_public_ip = "13.234.114.114"
 ```
 
 ✅ **2 EC2 instances created successfully**
@@ -74,10 +74,10 @@ nagios_public_ip = "13.233.112.94"
 Inventory is already configured with your actual IPs:
 ```ini
 [app]
-app_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.127.218.112 private_ip=10.0.1.14
+app_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.235.135.216 private_ip=10.0.1.245
 
 [nagios]
-nagios_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.233.112.94 private_ip=10.0.1.37
+nagios_server ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy-key ansible_host=13.234.114.114 private_ip=10.0.1.107
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
@@ -117,11 +117,11 @@ ansible all -i inventory.ini -m ping
 
 Expected output when successful:
 ```
-13.127.218.112 | SUCCESS => {
+13.235.135.216 | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
-13.233.112.94 | SUCCESS => {
+13.234.114.114 | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
@@ -150,7 +150,7 @@ This will:
 
 ### 3.4 Verify deployment
 ```bash
-curl http://13.127.218.112
+curl http://13.235.135.216
 # Should see your Next.js app
 ```
 
@@ -171,7 +171,7 @@ This will:
 
 ### 4.2 Access Nagios Web UI ✅
 ```
-URL: http://13.233.112.94
+URL: http://13.234.114.114
 Username: nagios
 Password: nagios123
 ```
@@ -183,7 +183,7 @@ Password: nagios123
 ### 5.1 Update Nagios app config with correct IPs
 SSH into Nagios server:
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
+ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
 ```
 
 Edit the app config:
@@ -193,7 +193,7 @@ sudo nano /usr/local/nagios/etc/servers/app.cfg
 
 Update the address to the app server's private IP:
 ```
-address                 10.0.1.14
+address                 10.0.1.245
 ```
 
 ### 5.2 Verify and restart Nagios
@@ -214,29 +214,29 @@ terraform output
 
 ### SSH into App Server
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
+ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
 ```
 
 ### Check PM2 Status
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
+ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
 pm2 status
 ```
 
 ### View PM2 Logs
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.127.218.112
+ssh -i ~/.ssh/deploy-key ubuntu@13.235.135.216
 pm2 logs nextjs-app
 ```
 
 ### SSH into Nagios Server
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
+ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
 ```
 
 ### Check Nagios Service
 ```bash
-ssh -i ~/.ssh/deploy-key ubuntu@13.233.112.94
+ssh -i ~/.ssh/deploy-key ubuntu@13.234.114.114
 sudo systemctl status nagios
 ```
 
