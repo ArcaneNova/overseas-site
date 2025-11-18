@@ -25,9 +25,10 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Reference existing key pair (already created in AWS)
-data "aws_key_pair" "deploy_key" {
-  key_name = "deploy-key"
+# Create SSH key pair
+resource "aws_key_pair" "deploy_key" {
+  key_name   = "deploy-key"
+  public_key = file(var.ssh_public_key_path)
 }
 
 # VPC
@@ -119,7 +120,7 @@ resource "aws_instance" "app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.app_instance_type
   subnet_id              = aws_subnet.public.id
-  key_name               = data.aws_key_pair.deploy_key.key_name
+  key_name               = aws_key_pair.deploy_key.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   tags = { Name = "nextjs-app" }
@@ -167,7 +168,7 @@ resource "aws_instance" "nagios" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.nagios_instance_type
   subnet_id              = aws_subnet.public.id
-  key_name               = data.aws_key_pair.deploy_key.key_name
+  key_name               = aws_key_pair.deploy_key.key_name
   vpc_security_group_ids = [aws_security_group.nagios_sg.id]
 
   tags = { Name = "nagios-server" }
