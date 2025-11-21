@@ -148,28 +148,8 @@
       register: nginx_test
       failed_when: nginx_test.rc != 0
 
-    - name: Install NRPE for Nagios monitoring
-      apt:
-        name:
-          - nagios-nrpe-server
-          - nagios-plugins-basic
-        state: present
-
-    - name: Configure NRPE
-      lineinfile:
-        path: /etc/nagios/nrpe.cfg
-        regexp: '^allowed_hosts='
-        line: "allowed_hosts=127.0.0.1,{{ hostvars['NAGIOS_PUBLIC_IP']['private_ip'] | default('10.0.1.0/24') }}"
-      notify: restart nrpe
-
   handlers:
     - name: restart nginx
       service:
         name: nginx
         state: restarted
-
-    - name: restart nrpe
-      service:
-        name: nagios-nrpe-server
-        state: restarted
-        enabled: yes
