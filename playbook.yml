@@ -1,0 +1,125 @@
+---
+- name: Deploy Next.js App with Apache
+  hosts: nextjs_servers
+  become: yes
+  vars:
+    app_repo: "https://github.com/ArcaneNova/overseas-site.git"
+    app_dir: "/var/www/bnoverseas-app"
+    node_version: "18"
+    
+  tasks:
+    # Update system packages
+    - name: Update system packages
+      yum:
+        name: "*"
+        state: latest
+        
+    # Install Node.js and npm
+    - name: Install Node.js repository
+      shell: curl -fsSL https://rpm.nodesource.com/setup_{{ node_version }}.x | bash -
+      
+    - name: Install Node.js
+      yum:
+        name:
+          - nodejs
+        state: present
+        
+    # Install Apache
+    - name: Install Apache web server
+      yum:
+        name:
+          - httpd
+          - httpd-devel
+        state: present
+        
+    # Install Apache modules for proxy
+    - name: Enable Apache proxy modules
+      apache2_module:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - proxy
+        - proxy_http
+        - rewrite
+        - ssl
+      ignore_errors: yes
+      
+    - name: Create Apache modules configuration (alternative method)
+      shell: |
+        a2enmod proxy proxy_http rewrite ssl
+      ignore_errors: yes
+      
+    # Install Git
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+        
+    # Create app directory
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+        
+    # Clone or update repository
+    - name: Clone repository
+      git:
+        repo: "{{ app_repo }}"
+        dest: "{{ app_dir }}"
+        version: main
+        accept_hostkey: yes
+      register: git_result
+      
+    # Copy environment file
+    - name: Copy .env file
+      copy:
+        src: ./deploy.env
+        dest: "{{ app_dir }}/.env"
+        mode: '0600'
+        
+    # Install dependencies
+    - name: Install npm dependencies
+      shell: cd {{ app_dir }} && npm install --production
+      
+    # Build Next.js application
+    - name: Build Next.js application
+      shell: cd {{ app_dir }} && npm run build
+      
+    # Configure Apache Virtual Host
+    - name: Create Apache configuration for Next.js
+      template:
+        src: nextjs-vhost.conf.j2
+        dest: /etc/httpd/conf.d/bnoverseas-app.conf
+      notify: restart apache
+      
+    # Start and enable Apache
+    - name: Start and enable Apache service
+      systemd:
+        name: httpd
+        state: started
+        enabled: yes
+        daemon_reload: yes
+        
+    # Firewall configuration
+    - name: Allow HTTP through firewall
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+      ignore_errors: yes
+      
+    - name: Allow HTTPS through firewall
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+        immediate: yes
+      ignore_errors: yes
+      
+  handlers:
+    - name: restart apache
+      systemd:
+        name: httpd
+        state: restarted
