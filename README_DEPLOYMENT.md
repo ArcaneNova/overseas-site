@@ -9,7 +9,7 @@
 ✅ **Monitoring**: Nagios
 ✅ **Monitoring Agent**: NRPE
 ✅ **Configuration Management**: Ansible
-✅ **App Server IP**: 13.61.181.123 (10.0.1.167)
+✅ **App Server IP**: 13.61.174.148 (10.0.1.167)
 ✅ **Nagios Server IP**: 16.16.215.8 (10.0.1.225)
 
 ## Quick Start

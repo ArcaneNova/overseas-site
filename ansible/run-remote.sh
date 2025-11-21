@@ -96,7 +96,7 @@ define host{
     use                     local-host
     host_name               app-server
     alias                   Next.js App
-    address                 13.61.181.123
+    address                 13.61.174.148
 }
 define service{
     use                     local-service
@@ -150,25 +150,25 @@ define service{
     use                     local-service
     host_name               app-server
     service_description     Remote Load
-    check_command           check_nrpe!-H 13.61.181.123 -c check_load
+    check_command           check_nrpe!-H 13.61.174.148 -c check_load
 }
 define service{
     use                     local-service
     host_name               app-server
     service_description     Remote Disk
-    check_command           check_nrpe!-H 13.61.181.123 -c check_disk
+    check_command           check_nrpe!-H 13.61.174.148 -c check_disk
 }
 define service{
     use                     local-service
     host_name               app-server
     service_description     Remote Memory
-    check_command           check_nrpe!-H 13.61.181.123 -c check_memory
+    check_command           check_nrpe!-H 13.61.174.148 -c check_memory
 }
 define service{
     use                     local-service
     host_name               app-server
     service_description     Remote Processes
-    check_command           check_nrpe!-H 13.61.181.123 -c check_processes
+    check_command           check_nrpe!-H 13.61.174.148 -c check_processes
 }
 HOSTS
 echo -e "${YELLOW}[7/10] Fixing permissions...${NC}"
@@ -191,7 +191,7 @@ echo -e "User: ${YELLOW}nagios${NC} | Pass: ${YELLOW}nagios123${NC}"
 echo ""
 echo -e "${GREEN}Monitoring:${NC}"
 echo -e "  • localhost: 4 services"
-echo -e "  • app-server (13.61.181.123): 8 services"
+echo -e "  • app-server (13.61.174.148): 8 services"
 echo ""
 '
 

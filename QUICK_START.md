@@ -1,7 +1,7 @@
 # Quick Deployment Guide
 
 ## Current Infrastructure
-- **App Server**: 13.61.181.123 (private: 10.0.1.167)
+- **App Server**: 13.61.174.148 (private: 10.0.1.167)
 - **Nagios Server**: 16.16.215.8 (private: 10.0.1.225)
 
 ## To Deploy Everything
@@ -37,7 +37,7 @@ bash deploy-all.sh
 ## Access Your Services
 
 ### Next.js App
-- **URL**: http://13.61.181.123
+- **URL**: http://13.61.174.148
 - **Repository**: https://github.com/ArcaneNova/overseas-site
 
 ### Nagios Monitoring
